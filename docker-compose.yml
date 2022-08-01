@@ -1,0 +1,39 @@
+---
+version: "3"
+services:
+
+  server:
+    image: linuxserver/wireguard
+    environment:
+      - PEERS=node_01,node_02
+    volumes:
+      - wg-config:/config
+    cap_add:
+      - NET_ADMIN
+
+  node_01:
+    image: linuxserver/wireguard
+    hostname: node_01
+    entrypoint: /entrypoint-node.sh
+    volumes:
+      - ./entrypoint-node.sh:/entrypoint-node.sh
+      - wg-config:/server_config
+    command: >-
+      ping node_02
+    links:
+      - server
+
+  node_02:
+    image: linuxserver/wireguard
+    hostname: node_02
+    entrypoint: /entrypoint-node.sh
+    volumes:
+      - ./entrypoint-node.sh:/entrypoint-node.sh
+      - wg-config:/server_config
+    command: >-
+      ping node_01
+    links:
+      - server
+
+volumes:
+  wg-config:
